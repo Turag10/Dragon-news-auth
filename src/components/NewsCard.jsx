@@ -64,6 +64,6 @@ const NewsCard = (props = {}) => {
 };
 export default NewsCard;
 
-// Sample news
 
-//
+
+
