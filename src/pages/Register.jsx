@@ -1,9 +1,11 @@
-import React, { useContext } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useContext, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../provider/AuthContextProvider';
 
 const Register = () => {
-    const { createNewUser, user, setUser } = useContext(AuthContext);
+    const { createNewUser, setUser, updateUserProfile } = useContext(AuthContext);
+    const navigate = useNavigate();
+    const [error, setError] = useState({});
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -14,18 +16,36 @@ const Register = () => {
         const email = form.get("email");
         const password = form.get("password");
 
-        console.log({ name, email, photo, password });
+        // Reset previous errors
+        setError({});
+
+        // Validate name
+        if (name.length < 5) {
+            setError({ name: "Name must be more than 5 characters" });
+            return;
+        }
 
         createNewUser(email, password)
             .then((result) => {
-                
                 const user = result.user;
                 setUser(user);
-                console.log("User created:", user);
-                // You can update profile here or navigate to another page
+
+                return updateUserProfile({
+                    displayName: name,
+                    photoURL: photo,
+                });
             })
-            .catch((error) => {
-                console.error("Error creating user:", error);
+            .then(() => {
+                navigate("/");
+            }).catch(err=>{
+                console.log(err);
+
+            })
+
+
+            .catch((err) => {
+                console.error("Error during registration:", err);
+                setError({ general: err.message });
             });
     };
 
@@ -48,6 +68,11 @@ const Register = () => {
                             className="input input-bordered"
                             required
                         />
+                        {error.name && (
+                            <label className="label text-xs text-red-500">
+                                {error.name}
+                            </label>
+                        )}
                     </div>
 
                     {/* Photo URL Field */}
@@ -91,6 +116,13 @@ const Register = () => {
                             required
                         />
                     </div>
+
+                    {/* General Error */}
+                    {error.general && (
+                        <div className="text-red-500 text-xs mt-2 text-center">
+                            {error.general}
+                        </div>
+                    )}
 
                     {/* Register Button */}
                     <div className="form-control mt-6">
